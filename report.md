@@ -11,14 +11,14 @@ June 2, 2017
 
 Automated musical transcription is the process of having a machine process a
 recorded piece of music and turn it into a digital format which encapsulates
-the piece in a more musical form.  This more musical form should be enough to
+the piece in a more musical form. This more musical form should be enough to
 act as an instruction list which, when followed, is enough to reproduce the
 original piece of music.
 
 Traditionally music is transcribed in a visual manor with symbols indicating
 pitch, key signature, and note duration along with any additional accents and
-notes which might be required by the human performer of the piece.  For
-machines to understand a transcription of music there is another story.  MIDI
+notes which might be required by the human performer of the piece. For
+machines to understand a transcription of music there is another story. MIDI
 (short for Musical Instrument Digital Interface) is a technical standard for
 describing similar musical information, but which can more easily interpreted
 by machines.
@@ -29,7 +29,7 @@ Instead of note durations and measures, MIDI (at least for the subset of the
 format which we are focused on today) involves a list of messages and the
 number of "ticks" at which those messages occur in the musical track.
 A single, typical message may encompass the following information: note on at
-tick 400, pitch 24, velocity 64.  This translates to: Play a low C 0.92
+tick 400, pitch 24, velocity 64. This translates to: Play a low C 0.92
 seconds into the track at a medium volume.
 
 <!--
@@ -113,8 +113,8 @@ In this section, you will be expected to analyze the data you are using for the 
 
 The data set for this project was generated in whole by a script that I wrote.
 The method for generating the music is an attempt to get enough coverage of
-pitches and velocities while trying to imitate musicality.  Music is typically
-composed within scales.  A scale is usually comprised of 7 notes per octave.
+pitches and velocities while trying to imitate musicality. Music is typically
+composed within scales. A scale is usually comprised of 7 notes per octave.
 So I set off to generate random notes within scales and close to each other
 pitch-wise by "running" through the scales and randomly changing the direction
 of the run.
@@ -162,10 +162,10 @@ In this section, you will need to provide some form of visualization that summar
 - _If a plot is provided, are the axes, title, and datum clearly defined?_
 -->
 
-The primary file used in this project is "Runs in A".  The track contains
+The primary file used in this project is "Runs in A". The track contains
 45,000 note-on events and 45,000 note-off events. The distribution plot below
 indicates that my method for generating the data while trying to imitate
-musicality as resulted in a fairly uniform distribution of pitches.  This, we
+musicality as resulted in a fairly uniform distribution of pitches. This, we
 have an ample data set to train and test from.
 
 ![](distplot.png)
@@ -179,20 +179,49 @@ In this section, you will need to discuss the algorithms and techniques you inte
 - _Is it made clear how the input data or datasets will be handled by the algorithms and techniques chosen?_
 -->
 
-The classifier is a simple
-[Artificial Neural Network](https://www.wikiwand.com/en/Artificial_neural_network).
-The classifier outputs a probability for each class. A class being the pitch
-of the note and whether it is to be turned on or off.
+The data will be preprocessed by dividing the music into 40ms frames of
+frequency centers and magnitudes for use as features and note on/off events to
+use as labels. The frequency centers and magnitudes are obtained using a fast
+Fourier transform. See [Data Preprocessing](#datapre) for more details.
 
-The neural network is fairly straight-forward: input, hidden layers, output.
-There are no convolutional or recurrent layers.
+The classifier being used is a simple
+[Artificial Neural Network](https://www.wikiwand.com/en/Artificial_neural_network) (ANN).
 
-Paramters which can be tuned to optimize the classifier:
-    - Classification threshold (at what probability we choose to assign the class)
-    - Number of epochs to train
-    - Batch size (frames to look at per training step)
-    - Solver type (algorithm for learning)
-    - Learning rate
+An artificial neural network is modelled after the brain. Similar to how
+neurons send and receive signals via synapses, a neuron in an ANN receives
+many different inputs simultaneously and sends a signal to other neurons
+depending on that value. Neurons in an ANN are grouped into layers. Each
+neuron in a layer sends its output to each neuron in the next layer. The
+output signal of a neuron is determined by taking all of the input values from
+the previous layer, mathematically combining them with a set of
+randomly initialized weights, and passing the single resulting scalar value
+through an "activation function."  The activation function typically bounds
+the resulting signal between 0 and 1.
+
+The final layer in the ANN will be a single vector which contains exactly as
+many classes as we have to predict. The value for each class is the
+probability that that class is true. A class in this case represents the
+pitch of the note and whether it is being turned on or off.
+We will use some threshold to determine if we will actually count
+that as a prediction of that class or not (in this project, the threshold was
+0.5).
+
+At the end of a single iteration, the loss is calculated. Loss is a
+representation of by how far off the prediction is. The weights for each
+layer are then incrementally updated using some small learning rate in order
+to try to minimize the loss. This process is repeated through many, many
+iterations until the final loss is low. This should result in a high precision
+for our classifier.
+
+See [Implementation](#implementation) for more details on the neural network.
+
+Parameters which can be tuned to optimize the classifier:
+
+- Classification threshold (at what probability we choose to assign the class)
+- Number of epochs to train
+- Batch size (frames to look at per training step)
+- Solver type (algorithm for learning)
+- Learning rate
 
 ### Benchmark
 <!--
@@ -202,22 +231,22 @@ In this section, you will need to provide a clearly defined benchmark result or 
 -->
 
 This project is very much an exploration of the space -- using neural networks
-for transcription.  As such, I don't have a solid threshold other than
-watching the precision of the classifier continue to increase.  The other
+for transcription. As such, I don't have a solid threshold other than
+watching the precision of the classifier continue to increase. The other
 non-scientific metric is that I periodically use the classifier to turn a wave
 file into MIDI, re-render it to audio, and gauge my own satisfaction with the
-results.  As someone who has been a musician for more than 17 years, I have a
+results. As someone who has been a musician for more than 17 years, I have a
 fairly well-trained ear.
 
 If I had to put an actual benchmark, I would like to have a precision of 80%.
 That would mean a transcriber using this as a tool would be only need to
-correct 20%.  It's completely arbitrary though.
+correct 20%. It's completely arbitrary though.
 
 
 ## III. Methodology
 <!-- _(approx. 3-5 pages)_ -->
 
-### Data Preprocessing
+### Data Preprocessing {#datapre}
 <!--
 In this section, all of your preprocessing steps will need to be clearly documented, if any were necessary. From the previous section, any of the abnormalities or characteristics that you identified about the dataset will be addressed and corrected here. Questions to ask yourself when writing this section:
 - _If the algorithms chosen require preprocessing steps like feature selection or feature transformations, have they been properly documented?_
@@ -225,7 +254,7 @@ In this section, all of your preprocessing steps will need to be clearly documen
 - _If no preprocessing is needed, has it been made clear why?_
 -->
 
-Music is just sound.  Sound is fluctuations in air pressure.  The sounds in
+Music is just sound. Sound is fluctuations in air pressure. The sounds in
 this project are stored in their base form as waveform audio files (waves).
 These waves are converted into a lists of features by slicing the wave into
 short segments then performing the fast fourier transform on them.
@@ -233,26 +262,27 @@ short segments then performing the fast fourier transform on them.
 ##### Frame:
 
 I'm using this term to denote a short period which is used to generate a
-single feature set and class set.  The time frame used in this project is 40ms
+single feature set and class set. The time frame used in this project is 40ms
 as it is shorter than the shortest notes generated.
 
 ##### Wave files:
 
-A wave file a discrete sampling of the amplitude of the audio signal.  The
-wave files used in this project have 16,000 samples per second.  Using a time
+A wave file a discrete sampling of the amplitude of the audio signal. The
+wave files used in this project have 16,000 samples per second. Using a time
 frame of 40ms means each frame represents 640 samples of the audio signal.
 
 ##### Fast Fourier transform (FFT)
 
 The fast Fourier is an algorithm for computing the discrete Fourier transform
-of a signal.  In short, this turns the wave signal into a list of frequency
-centers and their amplitudes, known as a spectrum.  Fourier analysis is used heavily in signal
-processing and is an excellent use case for feature generation as it gives
-good separation of lower and higher frequencies (pitches in this case).  An
-FFT transformation for 640 samples of audio results in 321 values.
+of a signal. In short, this turns the wave signal into a list of frequency
+centers and their amplitudes, known as a spectrum. Fourier analysis is used
+heavily in signal processing and is an excellent use case for feature
+generation as it gives good separation of lower and higher frequencies
+(pitches in this case). An FFT transformation for 640 samples of audio results
+in 321 values.
 
 Since the resulting values of the FFT are complex, they were converted into
-tuples of floats, then flattened out.  This created 2 times the number of
+tuples of floats, then flattened out. This created 2 times the number of
 features.
 
 All these factors result in 642 features per 40ms "frame" of audio.
@@ -268,7 +298,7 @@ Midi events for each frame were turned into boolean values over 170 classes.
 The classes are all pitches from C2 to C9 inclusive and whether the note is
 turned on and whether the note is turned off.
 
-### Implementation
+### Implementation {#implementation}
 <!--
 In this section, the process for which metrics, algorithms, and techniques that you implemented for the given data will need to be clearly documented. It should be abundantly clear how the implementation was carried out, and discussion should be made regarding any complications that occurred during this process. Questions to ask yourself when writing this section:
 - _Is it made clear how the algorithms and techniques were implemented with the given datasets or input data?_
@@ -277,14 +307,14 @@ In this section, the process for which metrics, algorithms, and techniques that 
 -->
 
 Data processing was implemented in the manor I described above using a custom
-script.  The script uses the [numpy](http://www.numpy.org/) and
+script. The script uses the [numpy](http://www.numpy.org/) and
 [scipy](https://www.scipy.org/) libraries for array and wave form
-operations.  The script usues the
+operations. The script usues the
 [python-midi](https://github.com/vishnubob/python-midi) library for reading
 and creating midi files.
 
 The classifier uses the [TensorFlow](https://www.tensorflow.org/) library for
-building, running, and visualizing.  I also make heavy use of the
+building, running, and visualizing. I also make heavy use of the
 [tensorflow.contrib.learn](https://www.tensorflow.org/get_started/tflearn)
 module for a bit simpler programming interface.
 
@@ -301,14 +331,14 @@ structure that I specified in the data processing section and cast them to
 
 ##### Dense layer
 
-The next (hidden) layer is a 512-neuron, fully-connected layer.  This operates
-in the classic nerual-netowrk style of multiplying randomly-initialized
+The next (hidden) layer is a 512-neuron, fully connected layer. This operates
+in the classic nerual-netowrk style of multiplying randomly initialized
 weights by the input features, adding a bias vector, and passing the result
 through an activation function.
 
 The activation function in this case is a
 [rectifier](https://www.wikiwand.com/en/Rectifier_(neural_networks))
-(ReLU for "rectified linear unit").  A rectifier is ideally linear (f(x) = x)
+(ReLU for "rectified linear unit"). A rectifier is ideally linear (f(x) = x)
 for all x > 0, but 0 otherwise.
 
 Rectifier approximation:
@@ -350,16 +380,16 @@ In this section, you will need to discuss the process of improvement you made up
 - _Are intermediate and final solutions clearly reported as the process is improved?_
 -->
 
-The model described above is the final model.  I had some frustrating
+The model described above is the final model. I had some frustrating
 experience while learning to use tensorflow and had some experiments which
-purely did not work.  I think they were due to faulty implementations on my
+purely did not work. I think they were due to faulty implementations on my
 part, which is why I came back to a simpler model. My recurrent neural
-net wouldn't optimize.  Attempting to run a convolutional net on series of
+net wouldn't optimize. Attempting to run a convolutional net on series of
 frames wouldn't even run.
 
 One experiment in the same line as the final model was to use a deeper
-network.  I opted for 200 x 100 x 100-neuron hidden layers instead of the one
-512-neuron layer I have.  It had lower precision and recall scores and did not
+network. I opted for 200 x 100 x 100-neuron hidden layers instead of the one
+512-neuron layer I have. It had lower precision and recall scores and did not
 converge on a low loss nearly as fast as the current model.
 
 
@@ -376,7 +406,7 @@ In this section, the final model and any supporting qualities should be evaluate
 -->
 
 This model is terrible, but I simply ran out of time to continue improving it
-and/or learning TensorFlow.  The model can understand low notes vs high notes
+and/or learning TensorFlow. The model can understand low notes vs high notes
 pretty well, but that's about it.
 
 I predicted a live rendition of Beethoven's Moonlight Sonata... Shameful.
@@ -403,7 +433,7 @@ In this section, your model’s final solution and its results should be compare
 -->
 
 This super simple neural net did learn some basic things like how to only
-predict one or two notes at a time.  It learned high notes and low notes.
+predict one or two notes at a time. It learned high notes and low notes.
 
 This problem is not solved by this model.
 
@@ -420,15 +450,15 @@ In this section, you will need to provide some form of visualization that emphas
 -->
 
 Below is a screenshot of the virtual instrument used to generate the audio for
-this project above the MIDI result from using a poor classifier.  The MIDI
-file is very cluttered and noisy.  This is the result of near-randomly
+this project above the MIDI result from using a poor classifier. The MIDI
+file is very cluttered and noisy. This is the result of near-randomly
 predicted notes.
 
 ![Really bad model](bad-model-piano.png)
 
 <!-- ![](overfit.png) -->
 
-Below is a screenshot of using the classifier.  You can see many
+Below is a screenshot of using the classifier. You can see many
 incorrectly sustained notes (long horizontal lines). But you can see a noisy
 shape which mimics the curve of the actual notes:
 
@@ -443,16 +473,31 @@ In this section, you will summarize the entire end-to-end problem solution and d
 - _Does the final model and solution fit your expectations for the problem, and should it be used in a general setting to solve these types of problems?_
 -->
 
+The process for addressing this problem involved:
+
+1.  Generating and rendering MIDI renditions of musical passages and their
+    WAV-file recording counterparts.
+2.  Processing that data into 40ms frames of note on/off events to use as
+    labels and a Fourier transform of the sound wave into a frequency-space
+    representation of the data to use as a feature set.
+3.  Splitting the data into randomized training/testing sets.
+4.  Running that data through a simple artificial neural network with a single
+    hidden layer and minimizing the loss.
+5.  Testing the result by using the predictions of the classifier against the
+    true values in the testing set.
+6.  Manually inspecting the result by rending the predicted MIDI to an audio
+    file.
+
 This project was the first step in a longer term project of training a network
 to understand features of music generally.
 
-This has been a fantastic project.  Music has been a large part of my life for
-more than half of it.  I finally got to build a neural network that dose
-something I wanted to try, and I finally got to learn TensorFlow.  There was a
+This has been a fantastic project. Music has been a large part of my life for
+more than half of it. I finally got to build a neural network that dose
+something I wanted to try, and I finally got to learn TensorFlow. There was a
 lot of frustration there too due to some under-documented contrib modules.
 
 This final solution is not great, but I think the idea of using neural nets
-for this task has promise.  I think the right kind of neural net would do much
+for this task has promise. I think the right kind of neural net would do much
 better.
 
 ### Improvement
@@ -465,7 +510,7 @@ In this section, you will need to provide discussion as to how one aspect of the
 
 I think a more complex and more modern network would do much better.
 A recurrent net or a convolutional net (or a combination of the two) could be
-astounding.  One thing I should have tried was feature scaling.  I think that
+astounding. One thing I should have tried was feature scaling. I think that
 caused some strange errors in other models I abandoned.
 
 <!-----------------------------------------------------------------------------
