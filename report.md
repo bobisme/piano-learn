@@ -71,7 +71,7 @@ Accuracy is a common metric for binary classification, but in this problem is
 not a good metric because most of the frames of music we are analyzing contain
 no events--they are merely space between note stops and starts. Accuracy
 is defined as the sum of true positives and true negatives divided by the
-size of the dataset. In this case a classifier which never chooses an even
+size of the dataset. In this case a classifier which never chooses any class
 for a given frame of music tends to have a higher than 99% accuracy.
 
 Therefore we will be looking at precision for the primary metric of this task
